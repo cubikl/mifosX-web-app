@@ -19,6 +19,7 @@ import { NextStepDialogComponent } from '../../../configuration-wizard/next-step
 import { CustomParametersPopoverComponent } from './custom-parameters-popover/custom-parameters-popover.component';
 import { SchedulerJob } from './models/scheduler-job.model';
 import { ErrorLogPopoverComponent } from './error-log-popover/error-log-popover.component';
+import { RunSelectedJobsPopoverComponent } from './run-selected-jobs-popover/run-selected-jobs-popover.component';
 
 /**
  * Manage scheduler jobs component.
@@ -29,13 +30,20 @@ import { ErrorLogPopoverComponent } from './error-log-popover/error-log-popover.
   styleUrls: ['./manage-scheduler-jobs.component.scss']
 })
 export class ManageSchedulerJobsComponent implements OnInit, AfterViewInit {
-
   /** Jobs data. */
   jobData: any;
   /** Scheduler data */
   schedulerData: any;
   /** Columns to be displayed in manage scheduler jobs table. */
-  displayedColumns: string[] = ['select', 'displayName', 'active', 'previousRunTime', 'currentlyRunning', 'nextRunTime', 'errorLog'];
+  displayedColumns: string[] = [
+    'select',
+    'displayName',
+    'active',
+    'previousRunTime',
+    'currentlyRunning',
+    'nextRunTime',
+    'errorLog'
+  ];
   /** Data source for manage scheduler jobs table. */
   dataSource: MatTableDataSource<any>;
   /** Initialize Selection */
@@ -67,12 +75,14 @@ export class ManageSchedulerJobsComponent implements OnInit, AfterViewInit {
    * @param {ConfigurationWizardService} configurationWizardService ConfigurationWizard Service.
    * @param {PopoverService} popoverService PopoverService.
    */
-  constructor(private route: ActivatedRoute,
+  constructor(
+    private route: ActivatedRoute,
     private systemService: SystemService,
     private router: Router,
     private dialog: MatDialog,
     private configurationWizardService: ConfigurationWizardService,
-    private popoverService: PopoverService) {
+    private popoverService: PopoverService
+  ) {
     this.route.data.subscribe((data: { jobsScheduler: any }) => {
       if (data.jobsScheduler) {
         this.jobData = data.jobsScheduler[0];
@@ -101,9 +111,7 @@ export class ManageSchedulerJobsComponent implements OnInit, AfterViewInit {
    * Selects all rows if they are not all selected; otherwise clear selection.
    */
   masterToggle() {
-    this.isAllSelected() ?
-      this.selection.clear() :
-      this.dataSource.data.forEach(row => this.selection.select(row));
+    this.isAllSelected() ? this.selection.clear() : this.dataSource.data.forEach((row) => this.selection.select(row));
   }
 
   /**
@@ -118,49 +126,50 @@ export class ManageSchedulerJobsComponent implements OnInit, AfterViewInit {
    * Initializes the data source, paginator and sorter for manage scheduler jobs table.
    */
   setJobs() {
-    this.systemService.getJobs()
-      .subscribe((jobData: any) => {
-        this.dataSource = new MatTableDataSource(jobData);
-        this.dataSource.paginator = this.paginator;
-        this.dataSource.sort = this.sort;
-        this.jobsCounter = jobData.length;
-        this.selection.clear();
-        this.dataSource.sortingDataAccessor = (item, property) => {
-          switch (property) {
-            case 'previousRunStatus': return item.lastRunHistory.status;
-            case 'errorLog': return item.lastRunHistory.status;
-            case 'previousRunTime': return new Date(item.lastRunHistory.jobRunStartTime);
-            case 'nextRunTime': return new Date(item.nextRunTime);
-            default: return item[property];
-          }
-        };
-      });
+    this.systemService.getJobs().subscribe((jobData: any) => {
+      this.dataSource = new MatTableDataSource(jobData);
+      this.dataSource.paginator = this.paginator;
+      this.dataSource.sort = this.sort;
+      this.jobsCounter = jobData.length;
+      this.selection.clear();
+      this.dataSource.sortingDataAccessor = (item, property) => {
+        switch (property) {
+          case 'previousRunStatus':
+            return item.lastRunHistory.status;
+          case 'errorLog':
+            return item.lastRunHistory.status;
+          case 'previousRunTime':
+            return new Date(item.lastRunHistory.jobRunStartTime);
+          case 'nextRunTime':
+            return new Date(item.nextRunTime);
+          default:
+            return item[property];
+        }
+      };
+    });
   }
 
   getScheduler() {
-    this.systemService.getScheduler()
-      .subscribe((schedulerData: any) => {
-        this.schedulerData = schedulerData;
-        this.schedulerActive = this.schedulerData.active;
-      });
+    this.systemService.getScheduler().subscribe((schedulerData: any) => {
+      this.schedulerData = schedulerData;
+      this.schedulerActive = this.schedulerData.active;
+    });
   }
 
   suspendScheduler(): void {
-    this.systemService.runCommandOnScheduler('stop')
-      .subscribe(() => {
-        this.getScheduler();
-      });
+    this.systemService.runCommandOnScheduler('stop').subscribe(() => {
+      this.getScheduler();
+    });
   }
 
   activateScheduler(): void {
-    this.systemService.runCommandOnScheduler('start')
-      .subscribe(() => {
-        this.getScheduler();
-      });
+    this.systemService.runCommandOnScheduler('start').subscribe(() => {
+      this.getScheduler();
+    });
   }
 
   isAnyJobSelected(): boolean {
-    return (this.selection.selected.length > 0);
+    return this.selection.selected.length > 0;
   }
 
   runSelectedJobs(): void {
@@ -179,7 +188,12 @@ export class ManageSchedulerJobsComponent implements OnInit, AfterViewInit {
    * @param position String.
    * @param backdrop Boolean.
    */
-  showPopover(template: TemplateRef<any>, target: HTMLElement | ElementRef<any>, position: string, backdrop: boolean): void {
+  showPopover(
+    template: TemplateRef<any>,
+    target: HTMLElement | ElementRef<any>,
+    position: string,
+    backdrop: boolean
+  ): void {
     setTimeout(() => this.popoverService.open(template, target, position, backdrop, {}), 200);
   }
 
@@ -227,7 +241,7 @@ export class ManageSchedulerJobsComponent implements OnInit, AfterViewInit {
         nextStepName: 'Setup Accounting',
         previousStepName: 'System',
         stepPercentage: 60
-      },
+      }
     });
     nextStepDialogRef.afterClosed().subscribe((response: { nextStep: boolean }) => {
       if (response.nextStep) {
@@ -264,4 +278,29 @@ export class ManageSchedulerJobsComponent implements OnInit, AfterViewInit {
     }
   }
 
+  /**
+   * Open Run Selected Jobs Confirmation Dialog
+   */
+  openRunSelectedJobsDialog() {
+    const dialog = this.dialog.open(RunSelectedJobsPopoverComponent, {
+      data: {
+        selectedJobs: this.selection
+      }
+    });
+
+    dialog.componentInstance.confirmedJobs.subscribe((result) => {
+      if (result) {
+        const selectedJobs = this.selection.selected;
+        const confirmedJobIds = result.map((job) => job.jobId);
+
+        selectedJobs.forEach((job) => {
+          if (!confirmedJobIds.includes(job.jobId)) {
+            this.selection.deselect(job);
+          }
+        });
+
+        dialog.close();
+      }
+    });
+  }
 }
