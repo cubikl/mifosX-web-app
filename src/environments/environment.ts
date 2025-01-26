@@ -26,9 +26,8 @@ export const environment = {
       ':' +
       window.location.port,
   // For connecting to server running elsewhere set the base API URL
-  baseApiUrl:
-    loadedEnv['baseApiUrl'] || window.location.protocol + '//' + window.location.hostname + ':' + window.location.port,
-  allowServerSwitch: env.allow_switching_backend_instance,
+  baseApiUrl: loadedEnv['baseApiUrl'] || window.location.protocol + '//' + window.location.hostname + ':' + window.location.port,
+  allowServerSwitch: env.allow_switching_backend_instance || false,
   apiProvider: loadedEnv['apiProvider'] || '/fineract-provider/api',
   apiVersion: loadedEnv['apiVersion'] || '/v1',
   serverUrl: '',
