@@ -1,6 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { DagreNodesOnlyLayout, Edge, Layout, Node } from '@swimlane/ngx-graph';
-import * as shape from 'd3-shape';
+import * as shape from 'd3';
 import { Subject } from 'rxjs';
 
 export class JobStep {
